@@ -960,11 +960,19 @@ def run_feedback_agent(
         }
     )
 
-    report_text = (
+    raw_content = (
         report.content
         if hasattr(report, "content")
         else str(report)
     )
+
+    if isinstance(raw_content, list):
+        report_text = "".join(
+            item.get("text", "") if isinstance(item, dict) else str(item)
+            for item in raw_content
+        )
+    else:
+        report_text = str(raw_content)
 
     final_report = (
         f"# Interview Complete\n\n"
@@ -1492,6 +1500,8 @@ content="width=device-width, initial-scale=1.0"
 >
 
 <title>InterviewPilot</title>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <style>
 
@@ -2475,9 +2485,10 @@ async function submitAnswer() {
                 .getElementById(
                     "finalReport"
                 )
-                .textContent =
-                data.final_report ||
-                "Interview completed.";
+                .innerHTML = marked.parse(
+                    data.final_report ||
+                    "Interview completed."
+                );
 
             return;
         }
